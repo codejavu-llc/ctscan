@@ -19,6 +19,11 @@ It is designed for **large-scale internet scanning** and can comfortably handle 
 
 ---
 
+## Build
+
+```bash
+go build -o ctscan ctscan.go
+```
 ## Usage
 
 ```bash
