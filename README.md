@@ -2,7 +2,7 @@
 
 ⚡ **ctscan** is a fast, concurrent TLS scanner written in Go that extracts the **Common Name (CN)** from TLS certificates on port **443**.
 
-It is designed for **large-scale internet scanning** and can comfortably handle **hundreds of IPs per second** on a typical VPS.
+It is designed for **large-scale internet scanning** and can comfortably handle **hundreds of Hosts/IPs per second** on a typical VPS.
 
 ---
 
@@ -13,18 +13,23 @@ It is designed for **large-scale internet scanning** and can comfortably handle 
 - 📂 File-based IP input
 - ⏱ Configurable timeout
 - 🧵 Adjustable concurrency
-- 📈 Live progress (IPs left to scan)
+- 📈 Live progress (Hosts/IPs left to scan)
 - 📝 Output to file
 - 💻 Single static binary
 
 ---
 
-## Build
+## Install
 
 ```bash
+git clone https://github.com/codejavu-inc/ctscan.git
+cd ctscan
+go mod init && go mod tidy
 go build -o ctscan ctscan.go
+sudo cp ctscan /usr/local/bin # if you want to run the script from any 
 ```
 ## Usage
 
 ```bash
-./ctscan -l ips.txt -c 100 -t 3 -o output.txt
+ctscan -l hostsorips.txt -c 100 -t 3 -o output.txt
+echo google.com | ctscan
