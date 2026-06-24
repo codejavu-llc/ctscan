@@ -22,7 +22,7 @@ It is designed for **large-scale internet scanning** and can comfortably handle 
 ## Install
 
 ```bash
-git clone https://github.com/codejavu-inc/ctscan.git
+git clone https://github.com/codejavu-llc/ctscan.git
 cd ctscan
 go mod init && go mod tidy
 go build -o ctscan ctscan.go
