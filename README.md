@@ -24,7 +24,7 @@ It is designed for authorized bug-bounty reconnaissance, attack-surface inventor
 
 ## Installation
 
-Download a signed archive from [GitHub Releases](https://github.com/codejavu-llc/ctscan/releases), or install from source with Go 1.26 or newer:
+Download a signed archive from [GitHub Releases](https://github.com/codejavu-llc/ctscan/releases), or install from source with Go 1.27 or newer:
 
 ```bash
 go install github.com/codejavu-llc/ctscan@latest
