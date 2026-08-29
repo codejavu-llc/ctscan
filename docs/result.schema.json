@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/codejavu-llc/ctscan/docs/result.schema.json",
+  "title": "ctscan scan result",
+  "description": "One line of ctscan JSONL scan or audit output.",
+  "type": "object",
+  "required": ["schema_version", "timestamp", "input", "host", "port", "status", "duration_ms"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "input": { "type": "string" },
+    "host": { "type": "string" },
+    "ip": { "type": "string" },
+    "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+    "sni": { "type": "string" },
+    "starttls": { "type": "string" },
+    "status": { "enum": ["success", "failed"] },
+    "duration_ms": { "type": "integer", "minimum": 0 },
+    "tls": { "$ref": "#/$defs/tls" },
+    "certificate": { "$ref": "#/$defs/certificate" },
+    "chain": { "type": "array", "items": { "$ref": "#/$defs/certificate" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "audit": { "$ref": "#/$defs/audit" },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "error": { "$ref": "#/$defs/error" },
+    "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
+  },
+  "$defs": {
+    "tls": {
+      "type": "object",
+      "required": ["version", "cipher", "did_resume", "handshake_complete", "ocsp_stapled"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "type": "string" },
+        "cipher": { "type": "string" },
+        "key_exchange": { "type": "string" },
+        "alpn": { "type": "string" },
+        "did_resume": { "type": "boolean" },
+        "handshake_complete": { "type": "boolean" },
+        "ocsp_stapled": { "type": "boolean" },
+        "client_cert_required": { "type": "boolean" }
+      }
+    },
+    "name": {
+      "type": "object",
+      "required": ["string"],
+      "additionalProperties": false,
+      "properties": {
+        "common_name": { "type": "string" },
+        "organization": { "$ref": "#/$defs/strings" },
+        "organizational_unit": { "$ref": "#/$defs/strings" },
+        "country": { "$ref": "#/$defs/strings" },
+        "province": { "$ref": "#/$defs/strings" },
+        "locality": { "$ref": "#/$defs/strings" },
+        "string": { "type": "string" }
+      }
+    },
+    "certificate": {
+      "type": "object",
+      "required": ["subject", "issuer", "serial_number", "not_before", "not_after", "days_remaining", "fingerprint_sha256", "public_key_algorithm", "signature_algorithm", "is_ca", "has_sct"],
+      "additionalProperties": false,
+      "properties": {
+        "subject": { "$ref": "#/$defs/name" },
+        "issuer": { "$ref": "#/$defs/name" },
+        "dns_names": { "$ref": "#/$defs/strings" },
+        "ip_addresses": { "$ref": "#/$defs/strings" },
+        "email_addresses": { "$ref": "#/$defs/strings" },
+        "uris": { "$ref": "#/$defs/strings" },
+        "serial_number": { "type": "string" },
+        "not_before": { "type": "string", "format": "date-time" },
+        "not_after": { "type": "string", "format": "date-time" },
+        "days_remaining": { "type": "integer" },
+        "fingerprint_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "public_key_algorithm": { "type": "string" },
+        "public_key_bits": { "type": "integer", "minimum": 0 },
+        "signature_algorithm": { "type": "string" },
+        "is_ca": { "type": "boolean" },
+        "has_sct": { "type": "boolean" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["trusted", "hostname_match", "expired", "not_yet_valid", "self_signed", "chain_complete"],
+      "additionalProperties": false,
+      "properties": {
+        "trusted": { "type": "boolean" },
+        "hostname_match": { "type": "boolean" },
+        "expired": { "type": "boolean" },
+        "not_yet_valid": { "type": "boolean" },
+        "self_signed": { "type": "boolean" },
+        "chain_complete": { "type": "boolean" },
+        "trust_error": { "type": "string" },
+        "hostname_error": { "type": "string" }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "required": ["profile", "compliance"],
+      "additionalProperties": false,
+      "properties": {
+        "profile": { "enum": ["intermediate", "modern"] },
+        "compliance": { "enum": ["pass", "warn", "fail"] },
+        "supported_versions": { "$ref": "#/$defs/strings" },
+        "supported_ciphers": { "$ref": "#/$defs/strings" }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": ["id", "severity", "title", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "severity": { "enum": ["info", "low", "medium", "high", "critical"] },
+        "title": { "type": "string" },
+        "evidence": { "type": "string" },
+        "remediation": { "type": "string" },
+        "references": { "$ref": "#/$defs/strings" }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["kind", "message", "retryable"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["invalid_input", "dns", "connect_timeout", "connect_refused", "proxy", "starttls", "tls_handshake", "no_certificate", "canceled", "internal"] },
+        "message": { "type": "string" },
+        "retryable": { "type": "boolean" }
+      }
+    },
+    "strings": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+name: Bug report
+description: Report a reproducible ctscan defect
+title: "[bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not report security vulnerabilities here; follow SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: ctscan version
+      placeholder: Output of `ctscan version`
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and sanitized input
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed and expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: OS, architecture, network/proxy details

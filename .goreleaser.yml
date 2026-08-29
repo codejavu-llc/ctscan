@@ -1,0 +1,73 @@
+version: 2
+
+project_name: ctscan
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: ctscan
+    main: .
+    binary: ctscan
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/codejavu-llc/ctscan/internal/cli.Version={{.Version}}
+        -X github.com/codejavu-llc/ctscan/internal/cli.Commit={{.Commit}}
+        -X github.com/codejavu-llc/ctscan/internal/cli.Date={{.Date}}
+
+archives:
+  - id: release
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - LICENSE
+      - README.md
+      - docs/result.schema.json
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+sboms:
+  - artifacts: archive
+
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    certificate: "${artifact}.pem"
+    signature: "${artifact}.sig"
+    args:
+      - sign-blob
+      - --yes
+      - --output-certificate=${certificate}
+      - --output-signature=${signature}
+      - ${artifact}
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+release:
+  draft: false
+  prerelease: auto

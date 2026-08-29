@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a reconnaissance or TLS-triage improvement
+title: "[feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and use case
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior or interface
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Scope, safety, and false-positive considerations
