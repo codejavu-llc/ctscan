@@ -3,7 +3,6 @@ name: Release
 on:
   push:
     tags: ['v*']
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,7 +11,6 @@ permissions:
 
 jobs:
   release:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -33,7 +31,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   container:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -62,18 +59,3 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
-
-  package-visibility:
-    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.container.result == 'success') }}
-    needs: container
-    permissions:
-      packages: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Make the GHCR package public
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >-
-          gh api --method PATCH
-          "/orgs/${{ github.repository_owner }}/packages/container/${{ github.event.repository.name }}"
-          -f visibility=public
