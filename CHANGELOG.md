@@ -4,7 +4,9 @@ All notable changes will be documented here. The project follows Semantic Versio
 
 ## Unreleased
 
-No unreleased changes.
+### Changed
+
+- `-o FILE` now writes results only to the file and replaces final statistics with a remaining-object count on stderr. `--silent` also hides this progress. Counts track completed scans, including ordered output and audit scans, and restart for each certificate-pivot wave.
 
 ## 1.0.0 - 2026-08-29
 

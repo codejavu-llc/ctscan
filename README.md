@@ -127,9 +127,9 @@ Output formats:
 - `-j` or `--format jsonl` emits one schema-versioned object per target.
 - `--dns` emits normalized, unique CN/SAN names and omits failures.
 - `--include-failures=false` or `--success-only` suppresses failed targets in text and JSONL.
-- `-o FILE` preserves the legacy behavior of writing to both stdout and the file.
+- `-o FILE` writes results only to the file, suppresses final statistics, and shows the number of objects left to scan on stderr. Progress updates appear at most once per second, plus the start and end of each scan wave. With `--pivot`, each newly discovered wave gets its own count. Add `--silent` to hide progress too.
 
-Results go to stdout. Statistics and diagnostics go to stderr, so pipelines remain clean. The JSON schema is published at [`docs/result.schema.json`](docs/result.schema.json).
+Results go to stdout unless `-o FILE` is used. Progress, statistics, and diagnostics go to stderr, so pipelines remain clean. The JSON schema is published at [`docs/result.schema.json`](docs/result.schema.json).
 
 Target failure kinds are stable: `invalid_input`, `dns`, `connect_timeout`, `connect_refused`, `proxy`, `starttls`, `tls_handshake`, `no_certificate`, and `canceled`.
 

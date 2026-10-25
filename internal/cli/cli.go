@@ -144,7 +144,7 @@ func runScan(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 	fs.StringVarP(&opts.timeout, "timeout", "t", opts.timeout, "per-attempt timeout (bare numbers mean seconds)")
 	fs.IntVar(&opts.retries, "retries", opts.retries, "retries for transient failures")
 	fs.IntVar(&opts.rateLimit, "rate-limit", 0, "maximum connection attempts per second (0 is unlimited)")
-	fs.StringVarP(&opts.outputFile, "output", "o", "", "also write results to this file")
+	fs.StringVarP(&opts.outputFile, "output", "o", "", "write results only to this file and show remaining objects on stderr")
 	fs.StringVar(&opts.format, "format", opts.format, "output format: text, jsonl, or dns")
 	fs.BoolVarP(&opts.jsonOutput, "json", "j", false, "emit JSONL")
 	fs.BoolVar(&opts.dnsOutput, "dns", false, "emit unique certificate names")
@@ -294,8 +294,7 @@ func runScan(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 			return 1
 		}
 		defer outputHandle.Close()
-		// Persist first so a downstream broken pipe cannot leave -o incomplete.
-		destination = io.MultiWriter(outputHandle, stdout)
+		destination = outputHandle
 	}
 	includeFailures := opts.includeFailures && !opts.successOnly && opts.format != "dns"
 	resultWriter, err := output.New(destination, output.Config{Format: opts.format, IncludeFailures: includeFailures})
@@ -318,9 +317,16 @@ func runScan(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 	}
 	wave := parsed
 	discovered := 0
+	if len(wave) == 0 && opts.outputFile != "" && !opts.silent {
+		newScanProgress(stderr, 0)
+	}
 	for depth := 0; len(wave) > 0; depth++ {
 		var nextNames []string
-		err = runWave(ctx, scanner, wave, audit, opts, func(result ctscan.Result) error {
+		var progress *scanProgress
+		if opts.outputFile != "" && !opts.silent {
+			progress = newScanProgress(stderr, len(wave))
+		}
+		err = runWave(ctx, scanner, wave, audit, opts, progress.complete, func(result ctscan.Result) error {
 			stats.processed++
 			if result.Status == "success" {
 				stats.succeeded++
@@ -386,7 +392,7 @@ func runScan(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 		fmt.Fprintln(stderr, "error: flush output:", err)
 		return 1
 	}
-	if opts.stats && !opts.silent {
+	if opts.stats && !opts.silent && opts.outputFile == "" {
 		elapsed := time.Since(stats.started)
 		rate := 0.0
 		if elapsed > 0 {
@@ -403,7 +409,7 @@ func runScan(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 	return 0
 }
 
-func runWave(ctx context.Context, scanner *ctscan.Scanner, targets []ctscan.Target, audit bool, opts scanOptions, emit func(ctscan.Result) error) error {
+func runWave(ctx context.Context, scanner *ctscan.Scanner, targets []ctscan.Target, audit bool, opts scanOptions, completed func(), emit func(ctscan.Result) error) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if opts.ordered {
@@ -420,6 +426,7 @@ func runWave(ctx context.Context, scanner *ctscan.Scanner, targets []ctscan.Targ
 					} else {
 						results[index] = scanner.Scan(ctx, targets[index])
 					}
+					completed()
 				}
 			}()
 		}
@@ -455,6 +462,7 @@ func runWave(ctx context.Context, scanner *ctscan.Scanner, targets []ctscan.Targ
 			}
 		}()
 		for result := range scanner.ScanStream(ctx, channel) {
+			completed()
 			if err := emit(result); err != nil {
 				return err
 			}
@@ -494,6 +502,7 @@ func runWave(ctx context.Context, scanner *ctscan.Scanner, targets []ctscan.Targ
 		close(results)
 	}()
 	for result := range results {
+		completed()
 		if err := emit(result); err != nil {
 			return err
 		}
